@@ -5,18 +5,18 @@
 
 A modern, user-friendly packet capture and analysis tool written in Rust. This CLI tool provides packet capture and analysis capabilities with a better user experience, colored output, and intuitive interface.
 
-## ? Features
+## Features
 
-- ?? **Beautiful Output**: Color-coded, formatted packet display
-- ? **Fast**: Built with Rust for high performance
-- ?? **Multiple Formats**: Text, JSON, CSV, and detailed output modes
-- ?? **Filtering**: Support for BPF filters and application-level display filters
-- ?? **Statistics**: Real-time protocol distribution, top talkers, conversations, and port analysis
-- ?? **File I/O**: Read from and write to pcap files
-- ?? **Protocol Support**: Ethernet, IPv4, IPv6, TCP, UDP, ICMP, ARP, HTTP, DNS
-- ??? **Cross-Platform**: Works on Linux, macOS, and Windows
+-  **Beautiful Output**: Color-coded, formatted packet display
+-  **Fast**: Built with Rust for high performance
+-  **Multiple Formats**: Text, JSON, CSV, and detailed output modes
+-  **Filtering**: Support for BPF filters and application-level display filters
+-  **Statistics**: Real-time protocol distribution, top talkers, conversations, and port analysis
+-  **File I/O**: Read from and write to pcap files
+-  **Protocol Support**: Ethernet, IPv4, IPv6, TCP, UDP, ICMP, ARP, HTTP, DNS
+-  **Cross-Platform**: Works on Linux, macOS, and Windows
 
-## ?? Installation
+## Installation
 
 ### Prerequisites
 
@@ -46,7 +46,7 @@ The binary will be located at `target/release/sniffr`.
 cargo install --path .
 ```
 
-## ?? Usage
+## Usage
 
 ### List Available Interfaces
 
@@ -133,7 +133,7 @@ Statistics include:
 - Top talkers (IP addresses)
 - Top ports
 
-## ?? Examples
+## Examples
 
 **Monitor HTTP traffic:**
 ```bash
@@ -165,7 +165,7 @@ sniffr read file.pcap --format detailed
 sudo sniffr stats -c 1000
 ```
 
-## ?? Command Reference
+## Command Reference
 
 ```
 sniffr [COMMAND]
@@ -189,7 +189,7 @@ Capture Options:
   --write <FILE>               Save captured packets to pcap file
 ```
 
-## ?? Why Better Than tshark?
+## Why Better Than tshark?
 
 1. **Modern UI**: Color-coded output makes it easier to read packet information
 2. **Simpler Syntax**: More intuitive command-line interface
@@ -200,7 +200,7 @@ Capture Options:
 7. **Statistics Mode**: Built-in statistics collection and analysis
 8. **Type Safety**: Rust's type system prevents many common bugs
 
-## ?? Documentation
+## Documentation
 
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Guidelines for contributors
@@ -208,7 +208,7 @@ Capture Options:
 - **[ROADMAP.md](ROADMAP.md)** - Prioritized development roadmap
 - **[QUICK_WINS.md](QUICK_WINS.md)** - Step-by-step implementation guides
 
-## ?? Development
+## Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
@@ -232,7 +232,7 @@ cargo fmt
 cargo clippy
 ```
 
-## ?? Contributing
+## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
@@ -242,22 +242,22 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for det
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## ?? License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## ?? Acknowledgments
+## Acknowledgments
 
 - Inspired by tshark/Wireshark
 - Built with [Rust](https://www.rust-lang.org/)
 - Uses [libpcap](https://www.tcpdump.org/) for packet capture
 - Thanks to all contributors!
 
-## ?? Support
+## Support
 
-- ?? [Documentation](https://github.com/pallab-js/sniffr/wiki)
-- ?? [Report Issues](https://github.com/pallab-js/sniffr/issues)
-- ?? [Discussions](https://github.com/pallab-js/sniffr/discussions)
+-  [Documentation](https://github.com/pallab-js/sniffr/wiki)
+-  [Report Issues](https://github.com/pallab-js/sniffr/issues)
+-  [Discussions](https://github.com/pallab-js/sniffr/discussions)
 
 ---
 
