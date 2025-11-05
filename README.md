@@ -1,9 +1,9 @@
-# tshark-clone
+# sniffr
 
 [![Rust](https://img.shields.io/badge/rust-1.70%2B-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A modern, user-friendly alternative to tshark written in Rust. This CLI tool provides packet capture and analysis capabilities with a better user experience, colored output, and intuitive interface.
+A modern, user-friendly packet capture and analysis tool written in Rust. This CLI tool provides packet capture and analysis capabilities with a better user experience, colored output, and intuitive interface.
 
 ## ? Features
 
@@ -32,12 +32,12 @@ A modern, user-friendly alternative to tshark written in Rust. This CLI tool pro
 ### Build from Source
 
 ```bash
-git clone https://github.com/pallab-js/tshark-clone.git
-cd tshark-clone
+git clone https://github.com/pallab-js/sniffr.git
+cd sniffr
 cargo build --release
 ```
 
-The binary will be located at `target/release/tshark-clone`.
+The binary will be located at `target/release/sniffr`.
 
 ### Installation
 
@@ -51,80 +51,80 @@ cargo install --path .
 ### List Available Interfaces
 
 ```bash
-tshark-clone interfaces
+sniffr interfaces
 ```
 
 ### Capture Packets
 
 **Basic capture (default interface):**
 ```bash
-sudo tshark-clone capture
+sudo sniffr capture
 ```
 
 **Capture from specific interface:**
 ```bash
-sudo tshark-clone capture -i en0
+sudo sniffr capture -i en0
 ```
 
 **Capture specific number of packets:**
 ```bash
-sudo tshark-clone capture -c 10
+sudo sniffr capture -c 10
 ```
 
 **Capture with BPF filter:**
 ```bash
-sudo tshark-clone capture -f "tcp port 80"
-sudo tshark-clone capture -f "udp port 53"
-sudo tshark-clone capture -f "ip src 192.168.1.1"
+sudo sniffr capture -f "tcp port 80"
+sudo sniffr capture -f "udp port 53"
+sudo sniffr capture -f "ip src 192.168.1.1"
 ```
 
 **Verbose/detailed output:**
 ```bash
-sudo tshark-clone capture -v
+sudo sniffr capture -v
 ```
 
 **JSON output:**
 ```bash
-sudo tshark-clone capture --format json
+sudo sniffr capture --format json
 ```
 
 **CSV output:**
 ```bash
-sudo tshark-clone capture --format csv > packets.csv
+sudo sniffr capture --format csv > packets.csv
 ```
 
 **Save captured packets to file:**
 ```bash
-sudo tshark-clone capture --write output.pcap
+sudo sniffr capture --write output.pcap
 ```
 
 ### Read from Pcap File
 
 **Read packets from file:**
 ```bash
-tshark-clone read file.pcap
+sniffr read file.pcap
 ```
 
 **Read with filter:**
 ```bash
-tshark-clone read file.pcap --filter "tcp port 80"
+sniffr read file.pcap --filter "tcp port 80"
 ```
 
 **Read specific number of packets:**
 ```bash
-tshark-clone read file.pcap -c 100
+sniffr read file.pcap -c 100
 ```
 
 ### Statistics Mode
 
 **Collect statistics from live capture:**
 ```bash
-sudo tshark-clone stats -i en0 -c 1000
+sudo sniffr stats -i en0 -c 1000
 ```
 
 **Statistics from pcap file:**
 ```bash
-tshark-clone stats --file file.pcap
+sniffr stats --file file.pcap
 ```
 
 Statistics include:
@@ -137,38 +137,38 @@ Statistics include:
 
 **Monitor HTTP traffic:**
 ```bash
-sudo tshark-clone capture -f "tcp port 80" -v
+sudo sniffr capture -f "tcp port 80" -v
 ```
 
 **Capture DNS queries:**
 ```bash
-sudo tshark-clone capture -f "udp port 53" -c 20
+sudo sniffr capture -f "udp port 53" -c 20
 ```
 
 **Monitor traffic to/from specific IP:**
 ```bash
-sudo tshark-clone capture -f "host 8.8.8.8"
+sudo sniffr capture -f "host 8.8.8.8"
 ```
 
 **Capture and save to JSON:**
 ```bash
-sudo tshark-clone capture --format json > packets.json
+sudo sniffr capture --format json > packets.json
 ```
 
 **Analyze pcap file:**
 ```bash
-tshark-clone read file.pcap --format detailed
+sniffr read file.pcap --format detailed
 ```
 
 **Get statistics from capture:**
 ```bash
-sudo tshark-clone stats -c 1000
+sudo sniffr stats -c 1000
 ```
 
 ## ?? Command Reference
 
 ```
-tshark-clone [COMMAND]
+sniffr [COMMAND]
 
 Commands:
   capture     Capture and analyze packets from a network interface
@@ -216,8 +216,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ```bash
 # Clone the repository
-git clone https://github.com/pallab-js/tshark-clone.git
-cd tshark-clone
+git clone https://github.com/pallab-js/sniffr.git
+cd sniffr
 
 # Build
 cargo build --release
@@ -255,9 +255,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## ?? Support
 
-- ?? [Documentation](https://github.com/pallab-js/tshark-clone/wiki)
-- ?? [Report Issues](https://github.com/pallab-js/tshark-clone/issues)
-- ?? [Discussions](https://github.com/pallab-js/tshark-clone/discussions)
+- ?? [Documentation](https://github.com/pallab-js/sniffr/wiki)
+- ?? [Report Issues](https://github.com/pallab-js/sniffr/issues)
+- ?? [Discussions](https://github.com/pallab-js/sniffr/discussions)
 
 ---
 

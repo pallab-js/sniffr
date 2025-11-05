@@ -13,7 +13,7 @@ use display::DisplayFormatter;
 use stats::CaptureStats;
 
 #[derive(Parser)]
-#[command(name = "tshark-clone")]
+#[command(name = "sniffr")]
 #[command(about = "A modern, user-friendly packet capture and analysis tool", long_about = None)]
 #[command(version)]
 struct Cli {

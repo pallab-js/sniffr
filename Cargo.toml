@@ -1,12 +1,12 @@
 [package]
-name = "tshark-clone"
+name = "sniffr"
 version = "0.1.0"
 edition = "2021"
-authors = ["tshark-clone contributors"]
-description = "A modern, user-friendly alternative to tshark written in Rust"
+authors = ["sniffr contributors"]
+description = "A modern, user-friendly packet capture and analysis tool written in Rust"
 license = "MIT"
-repository = "https://github.com/pallab-js/tshark-clone"
-keywords = ["packet", "capture", "network", "pcap", "tshark", "wireshark", "analysis"]
+repository = "https://github.com/pallab-js/sniffr"
+keywords = ["packet", "capture", "network", "pcap", "sniffer", "analysis", "rust"]
 categories = ["command-line-utilities", "network-programming"]
 readme = "README.md"
 
