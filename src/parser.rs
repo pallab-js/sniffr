@@ -6,7 +6,7 @@ pub struct PacketParser;
 
 impl PacketParser {
     pub fn parse(data: &[u8]) -> anyhow::Result<Packet> {
-        let mut packet = Packet::new(data.len(), data.len());
+        let mut packet = Packet::new(data.len(), data.len(), data.to_vec());
         
         if data.len() < 14 {
             return Err(anyhow::anyhow!("Packet too short for Ethernet header"));
@@ -152,45 +152,53 @@ impl PacketParser {
         }
 
         let version = (data[0] >> 4) & 0x0F;
-        
+
         if version != 6 {
             return Err(anyhow::anyhow!("Not IPv6"));
         }
 
+        let _traffic_class = ((data[0] & 0x0F) << 4) | ((data[1] & 0xF0) >> 4);
+        let _flow_label = BigEndian::read_u32(&[0, data[1] & 0x0F, data[2], data[3]]) & 0x000FFFFF;
+        let payload_length = BigEndian::read_u16(&data[4..6]);
         let next_header = data[6];
-        
+        let hop_limit = data[7];
+
         // Ensure we have enough data for IPv6 addresses
         if data.len() < 40 {
             return Err(anyhow::anyhow!("IPv6 header incomplete"));
         }
-        
+
         let mut src_bytes = [0u8; 16];
         src_bytes.copy_from_slice(&data[8..24]);
         let src_ip = Ipv6Addr::from(src_bytes);
-        
+
         let mut dst_bytes = [0u8; 16];
         dst_bytes.copy_from_slice(&data[24..40]);
         let dst_ip = Ipv6Addr::from(dst_bytes);
+
+        // Note: IPv6 extension headers are not parsed here for simplicity
+        // The next_header field indicates the first extension header or upper layer protocol
 
         Ok(IpLayer {
             version,
             src_ip: IpAddr::V6(src_ip),
             dst_ip: IpAddr::V6(dst_ip),
             protocol: next_header,
-            ttl: data[7],
-            total_length: BigEndian::read_u16(&data[4..6]),
+            ttl: hop_limit,
+            total_length: payload_length + 40, // IPv6 total length includes header
         })
     }
 
     fn parse_transport(ip_layer: &IpLayer, data: &[u8]) -> anyhow::Result<Layer> {
-        let ip_header_len = if ip_layer.version == 4 {
-            ((data[0] & 0x0F) * 4) as usize
-        } else {
-            40 // IPv6
+        let ip_header_len = match ip_layer.version {
+            4 => ((data[0] & 0x0F) * 4) as usize,
+            6 => 40, // IPv6 fixed header length
+            _ => return Err(anyhow::anyhow!("Unsupported IP version")),
         };
 
         // Validate header length
-        if ip_header_len < (if ip_layer.version == 4 { 20 } else { 40 }) {
+        let min_header_len = if ip_layer.version == 4 { 20 } else { 40 };
+        if ip_header_len < min_header_len {
             return Err(anyhow::anyhow!("Invalid IP header length"));
         }
 
@@ -216,12 +224,24 @@ impl PacketParser {
                 Ok(Layer::Udp(Self::parse_udp(udp_data)?))
             }
             1 => {
-                // ICMP
+                // ICMP for IPv4, ICMPv6 for IPv6
                 if data.len() < ip_header_len + 4 {
                     return Err(anyhow::anyhow!("ICMP header too short"));
                 }
                 let icmp_data = &data[ip_header_len..];
                 Ok(Layer::Icmp(Self::parse_icmp(icmp_data)?))
+            }
+            58 => {
+                // ICMPv6
+                if ip_layer.version == 6 {
+                    if data.len() < ip_header_len + 4 {
+                        return Err(anyhow::anyhow!("ICMPv6 header too short"));
+                    }
+                    let icmp_data = &data[ip_header_len..];
+                    Ok(Layer::Icmp(Self::parse_icmp(icmp_data)?))
+                } else {
+                    Err(anyhow::anyhow!("ICMPv6 protocol in IPv4 packet"))
+                }
             }
             _ => Err(anyhow::anyhow!("Unsupported transport protocol")),
         }
@@ -251,11 +271,17 @@ impl PacketParser {
                 }
                 
                 // Try to parse HTTP
-                if tcp.dst_port == 80 || tcp.src_port == 80 || 
-                   tcp.dst_port == 8080 || tcp.src_port == 8080 ||
-                   tcp.dst_port == 443 || tcp.src_port == 443 {
+                if tcp.dst_port == 80 || tcp.src_port == 80 ||
+                   tcp.dst_port == 8080 || tcp.src_port == 8080 {
                     if let Ok(http) = Self::parse_http(app_data) {
                         return Ok(Layer::Http(http));
+                    }
+                }
+
+                // Try to parse SSL/TLS
+                if tcp.dst_port == 443 || tcp.src_port == 443 {
+                    if let Ok(ssl) = Self::parse_ssl(app_data) {
+                        return Ok(Layer::Ssl(ssl));
                     }
                 }
             }
@@ -486,6 +512,40 @@ impl PacketParser {
             transaction_id: packet.header.id,
             questions,
             answers,
+        })
+    }
+
+    fn parse_ssl(data: &[u8]) -> anyhow::Result<SslLayer> {
+        if data.len() < 5 {
+            return Err(anyhow::anyhow!("SSL/TLS record too short"));
+        }
+
+        let content_type = data[0];
+        let version_major = data[1];
+        let version_minor = data[2];
+        let length = BigEndian::read_u16(&data[3..5]);
+
+        let version = match (version_major, version_minor) {
+            (3, 0) => "SSL 3.0".to_string(),
+            (3, 1) => "TLS 1.0".to_string(),
+            (3, 2) => "TLS 1.1".to_string(),
+            (3, 3) => "TLS 1.2".to_string(),
+            (3, 4) => "TLS 1.3".to_string(),
+            _ => format!("Unknown ({}.{})", version_major, version_minor),
+        };
+
+        // For handshake messages, the first byte after header is handshake type
+        let handshake_type = if content_type == 22 && data.len() >= 6 { // Handshake
+            Some(data[5])
+        } else {
+            None
+        };
+
+        Ok(SslLayer {
+            content_type,
+            version,
+            length,
+            handshake_type,
         })
     }
 }

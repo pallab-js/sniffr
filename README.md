@@ -7,13 +7,13 @@ A modern, user-friendly packet capture and analysis tool written in Rust. This C
 
 ## Features
 
--  **Beautiful Output**: Color-coded, formatted packet display
+-  **Beautiful Output**: Color-coded, formatted packet display with hex dumps
 -  **Fast**: Built with Rust for high performance
--  **Multiple Formats**: Text, JSON, CSV, and detailed output modes
--  **Filtering**: Support for BPF filters and application-level display filters
+-  **Multiple Formats**: Text, JSON, CSV, detailed, and hex output modes
+-  **Advanced Filtering**: Support for BPF filters and complex application-level filters with AND/OR/NOT operators
 -  **Statistics**: Real-time protocol distribution, top talkers, conversations, and port analysis
 -  **File I/O**: Read from and write to pcap files
--  **Protocol Support**: Ethernet, IPv4, IPv6, TCP, UDP, ICMP, ARP, HTTP, DNS
+-  **Protocol Support**: Ethernet, IPv4, IPv6, TCP, UDP, ICMP, ICMPv6, ARP, HTTP, DNS, SSL/TLS
 -  **Cross-Platform**: Works on Linux, macOS, and Windows
 
 ## Installation
@@ -32,7 +32,7 @@ A modern, user-friendly packet capture and analysis tool written in Rust. This C
 ### Build from Source
 
 ```bash
-git clone https://github.com/pallab-js/sniffr.git
+git clone <repository-url>
 cd sniffr
 cargo build --release
 ```
@@ -81,6 +81,11 @@ sudo sniffr capture -f "ip src 192.168.1.1"
 **Verbose/detailed output:**
 ```bash
 sudo sniffr capture -v
+```
+
+**Hex dump output:**
+```bash
+sudo sniffr capture --format hex
 ```
 
 **JSON output:**
@@ -185,7 +190,7 @@ Capture Options:
   -c, --count <COUNT>          Number of packets to capture (0 = unlimited)
   -f, --filter <FILTER>        BPF filter (e.g., "tcp port 80")
   -v, --verbose                Verbose/detailed output
-  --format <FORMAT>            Output format: text, json, csv, detailed [default: text]
+   --format <FORMAT>            Output format: text, json, csv, detailed, hex [default: text]
   --write <FILE>               Save captured packets to pcap file
 ```
 
@@ -200,17 +205,27 @@ Capture Options:
 7. **Statistics Mode**: Built-in statistics collection and analysis
 8. **Type Safety**: Rust's type system prevents many common bugs
 
-## Documentation
-
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Guidelines for contributors
-- **[ENHANCEMENTS.md](ENHANCEMENTS.md)** - Complete list of enhancement suggestions
-- **[ROADMAP.md](ROADMAP.md)** - Prioritized development roadmap
-- **[QUICK_WINS.md](QUICK_WINS.md)** - Step-by-step implementation guides
-
 ## Development
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+### Quick Start
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd sniffr
+
+# Build
+cargo build --release
+
+# Run tests
+cargo test
+
+# Format code
+cargo fmt
+
+# Lint code
+cargo clippy
+```
 
 ### Quick Start
 
@@ -236,11 +251,9 @@ cargo clippy
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 

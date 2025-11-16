@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use std::net::IpAddr;
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct CaptureStats {
     pub packet_count: usize,
     pub total_bytes: usize,
@@ -17,7 +17,16 @@ pub struct CaptureStats {
 
 impl CaptureStats {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            packet_count: 0,
+            total_bytes: 0,
+            start_time: None,
+            end_time: None,
+            protocol_counts: HashMap::with_capacity(16), // Pre-allocate for common protocols
+            conversations: HashMap::with_capacity(1024), // Reasonable initial capacity
+            port_counts: HashMap::with_capacity(256), // Common ports
+            top_talkers: HashMap::with_capacity(512), // IP addresses
+        }
     }
 
     pub fn add_packet(&mut self, packet: &Packet) {
@@ -30,7 +39,9 @@ impl CaptureStats {
         self.end_time = Some(packet.timestamp);
 
         // Count protocols - only count transport/application layers to avoid double counting
-        let protocol_name = if packet.get_http_layer().is_some() {
+        let protocol_name = if packet.get_ssl_layer().is_some() {
+            "SSL"
+        } else if packet.get_http_layer().is_some() {
             "HTTP"
         } else if packet.get_dns_layer().is_some() {
             "DNS"

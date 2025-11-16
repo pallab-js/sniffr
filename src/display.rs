@@ -68,23 +68,35 @@ impl DisplayFormatter {
                         );
                     }
                 }
-            } else if let Some(dns) = packet.get_dns_layer() {
-                if let Some(udp) = packet.get_udp_layer() {
-                    let dns_type = if dns.is_response { "Response" } else { "Query" };
-                    let query_name = dns.questions.first()
-                        .map(|q| q.name.as_str())
-                        .unwrap_or("unknown");
-                    print!(
-                        "{} {} {}:{} → {}:{} {} ",
-                        "DNS".bright_blue().bold(),
-                        dns_type.bright_white(),
-                        ip.src_ip.to_string().cyan(),
-                        udp.src_port.to_string().yellow(),
-                        ip.dst_ip.to_string().cyan(),
-                        udp.dst_port.to_string().yellow(),
-                        query_name.bright_magenta()
-                    );
-                }
+             } else if let Some(ssl) = packet.get_ssl_layer() {
+                 if let Some(tcp) = packet.get_tcp_layer() {
+                     print!(
+                         "{} {} {}:{} → {}:{} ",
+                         "SSL".bright_green().bold(),
+                         Self::ssl_content_type_name(ssl.content_type).bright_white(),
+                         ip.src_ip.to_string().cyan(),
+                         tcp.src_port.to_string().yellow(),
+                         ip.dst_ip.to_string().cyan(),
+                         tcp.dst_port.to_string().yellow(),
+                     );
+                 }
+             } else if let Some(dns) = packet.get_dns_layer() {
+                 if let Some(udp) = packet.get_udp_layer() {
+                     let dns_type = if dns.is_response { "Response" } else { "Query" };
+                     let query_name = dns.questions.first()
+                         .map(|q| q.name.as_str())
+                         .unwrap_or("unknown");
+                     print!(
+                         "{} {} {}:{} → {}:{} {} ",
+                         "DNS".bright_blue().bold(),
+                         dns_type.bright_white(),
+                         ip.src_ip.to_string().cyan(),
+                         udp.src_port.to_string().yellow(),
+                         ip.dst_ip.to_string().cyan(),
+                         udp.dst_port.to_string().yellow(),
+                         query_name.bright_magenta()
+                     );
+                 }
             } else if let Some(tcp) = packet.get_tcp_layer() {
                 print!(
                     "{} {}:{} → {}:{} ",
@@ -238,14 +250,23 @@ impl DisplayFormatter {
                         println!("  Answer:          {} (TTL: {})", a.name.bright_cyan(), a.ttl);
                     }
                 }
-                Layer::Arp(arp) => {
-                    println!("{}", "ARP Layer".bright_white().bold());
-                    println!("  Operation:       {}", if arp.operation == 1 { "Request" } else { "Reply" });
-                    println!("  Source MAC:      {}", arp.src_mac.cyan());
-                    println!("  Source IP:       {}", arp.src_ip.to_string().cyan());
-                    println!("  Destination MAC: {}", arp.dst_mac.cyan());
-                    println!("  Destination IP:  {}", arp.dst_ip.to_string().cyan());
-                }
+                 Layer::Arp(arp) => {
+                     println!("{}", "ARP Layer".bright_white().bold());
+                     println!("  Operation:       {}", if arp.operation == 1 { "Request" } else { "Reply" });
+                     println!("  Source MAC:      {}", arp.src_mac.cyan());
+                     println!("  Source IP:       {}", arp.src_ip.to_string().cyan());
+                     println!("  Destination MAC: {}", arp.dst_mac.cyan());
+                     println!("  Destination IP:  {}", arp.dst_ip.to_string().cyan());
+                 }
+                 Layer::Ssl(ssl) => {
+                     println!("{}", "SSL/TLS Layer".bright_white().bold());
+                     println!("  Content Type:    {}", Self::ssl_content_type_name(ssl.content_type));
+                     println!("  Version:         {}", ssl.version);
+                     println!("  Length:          {} bytes", ssl.length);
+                     if let Some(ht) = ssl.handshake_type {
+                         println!("  Handshake Type:  {}", Self::ssl_handshake_type_name(ht));
+                     }
+                 }
                 Layer::Unknown(name) => {
                     println!("{}", format!("Unknown Layer: {}", name).bright_black());
                 }
@@ -404,16 +425,25 @@ impl DisplayFormatter {
                         })).collect::<Vec<_>>()
                     }));
                 }
-                Layer::Arp(arp) => {
-                    layers_array.push(serde_json::json!({
-                        "type": "arp",
-                        "operation": arp.operation,
-                        "src_mac": arp.src_mac,
-                        "src_ip": arp.src_ip.to_string(),
-                        "dst_mac": arp.dst_mac,
-                        "dst_ip": arp.dst_ip.to_string()
-                    }));
-                }
+                 Layer::Arp(arp) => {
+                     layers_array.push(serde_json::json!({
+                         "type": "arp",
+                         "operation": arp.operation,
+                         "src_mac": arp.src_mac,
+                         "src_ip": arp.src_ip.to_string(),
+                         "dst_mac": arp.dst_mac,
+                         "dst_ip": arp.dst_ip.to_string()
+                     }));
+                 }
+                 Layer::Ssl(ssl) => {
+                     layers_array.push(serde_json::json!({
+                         "type": "ssl",
+                         "content_type": ssl.content_type,
+                         "version": ssl.version,
+                         "length": ssl.length,
+                         "handshake_type": ssl.handshake_type
+                     }));
+                 }
                 Layer::Unknown(name) => {
                     layers_array.push(serde_json::json!({
                         "type": "unknown",
@@ -456,19 +486,21 @@ impl DisplayFormatter {
             .map(|tcp| tcp.dst_port.to_string())
             .or_else(|| packet.get_udp_layer().map(|udp| udp.dst_port.to_string()))
             .unwrap_or_else(|| "".to_string());
-        let protocol = if packet.get_http_layer().is_some() {
-            "HTTP"
-        } else if packet.get_dns_layer().is_some() {
-            "DNS"
-        } else if packet.get_tcp_layer().is_some() {
-            "TCP"
-        } else if packet.get_udp_layer().is_some() {
-            "UDP"
-        } else if packet.get_arp_layer().is_some() {
-            "ARP"
-        } else {
-            "Other"
-        };
+         let protocol = if packet.get_ssl_layer().is_some() {
+             "SSL"
+         } else if packet.get_http_layer().is_some() {
+             "HTTP"
+         } else if packet.get_dns_layer().is_some() {
+             "DNS"
+         } else if packet.get_tcp_layer().is_some() {
+             "TCP"
+         } else if packet.get_udp_layer().is_some() {
+             "UDP"
+         } else if packet.get_arp_layer().is_some() {
+             "ARP"
+         } else {
+             "Other"
+         };
 
         wtr.write_record(&[
             number.to_string(),
@@ -485,12 +517,41 @@ impl DisplayFormatter {
     }
 
     fn display_hex(&self, packet: &Packet, number: usize) {
-        // This is a simplified hex dump - in a real implementation,
-        // you'd want to show the actual packet bytes
-        println!("Packet #{} - Hex Dump (simplified)", number);
-        println!("Length: {} bytes", packet.length);
+        println!("Packet #{} - Hex Dump", number);
+        println!("Length: {} bytes (captured: {} bytes)", packet.length, packet.captured_length);
         println!("Timestamp: {}", packet.timestamp.to_rfc3339());
-        println!("[Hex dump format would display packet bytes here]");
+        println!();
+
+        // Display hex dump with 16 bytes per line
+        for (i, chunk) in packet.raw_data.chunks(16).enumerate() {
+            let offset = i * 16;
+            print!("{:08x}: ", offset);
+
+            // Hex bytes
+            for (j, &byte) in chunk.iter().enumerate() {
+                if j == 8 {
+                    print!(" ");
+                }
+                print!("{:02x} ", byte);
+            }
+
+            // Padding for incomplete lines
+            let padding = 16 - chunk.len();
+            for _ in 0..padding {
+                print!("   ");
+            }
+            if chunk.len() <= 8 {
+                print!(" ");
+            }
+
+            // ASCII representation
+            print!(" |");
+            for &byte in chunk {
+                let c = if byte.is_ascii_graphic() { byte as char } else { '.' };
+                print!("{}", c);
+            }
+            println!("|");
+        }
         println!();
     }
 
@@ -503,6 +564,33 @@ impl DisplayFormatter {
             47 => "GRE",
             50 => "ESP",
             51 => "AH",
+            _ => "Unknown",
+        }
+    }
+
+    fn ssl_content_type_name(content_type: u8) -> &'static str {
+        match content_type {
+            20 => "ChangeCipherSpec",
+            21 => "Alert",
+            22 => "Handshake",
+            23 => "ApplicationData",
+            24 => "Heartbeat",
+            _ => "Unknown",
+        }
+    }
+
+    fn ssl_handshake_type_name(handshake_type: u8) -> &'static str {
+        match handshake_type {
+            0 => "HelloRequest",
+            1 => "ClientHello",
+            2 => "ServerHello",
+            11 => "Certificate",
+            12 => "ServerKeyExchange",
+            13 => "CertificateRequest",
+            14 => "ServerHelloDone",
+            15 => "CertificateVerify",
+            16 => "ClientKeyExchange",
+            20 => "Finished",
             _ => "Unknown",
         }
     }
